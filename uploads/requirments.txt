@@ -1,0 +1,12 @@
+{
+  "email": "ssh@gmail.com",
+  "password": "sshx"
+}
+
+
+env\Scripts\activate
+
+cd teamsync
+
+
+
