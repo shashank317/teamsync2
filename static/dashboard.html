@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-100 dark:bg-black">
+<head>
+  <meta charset="UTF-8" />
+  <title>TeamSync – Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { inter: ['Inter', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <style>
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="text-gray-900 dark:text-white bg-gray-100 dark:bg-black min-h-screen">
+  <div class="min-h-screen px-6 py-10">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold">📁 TeamSync Dashboard</h1>
+      <div class="space-x-4">
+        <button id="darkModeToggle" onclick="toggleDarkMode()" class="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500 transition">
+          🌙 Dark Mode
+        </button>
+        <button onclick="window.location.href='/static/profile.html'" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
+          ⚙️ Profile Settings
+        </button>
+        <button onclick="logout()" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition">
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Add Project Form -->
+    <div class="mb-10">
+      <h2 class="text-xl font-semibold mb-2">Add New Project</h2>
+      <div class="space-y-2">
+        <input id="title" placeholder="Project Title" class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" />
+        <input id="description" placeholder="Project Description" class="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" />
+        <button onclick="createProject()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+          ➕ Create Project
+        </button>
+      </div>
+    </div>
+
+    <!-- Projects List -->
+    <div>
+      <h2 class="text-xl font-semibold mb-4">Your Projects</h2>
+      <div id="projects" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      window.location.href = "/";
+    }
+
+    async function loadProjects() {
+      const res = await fetch("/projects", {
+        headers: { Authorization: "Bearer " + token }
+      });
+      const projects = await res.json();
+
+      const container = document.getElementById("projects");
+      container.innerHTML = "";
+
+      projects.forEach((project) => {
+        const card = document.createElement("div");
+        card.className =
+          "p-4 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow";
+
+        card.innerHTML = `
+          <h3 class="text-xl font-bold mb-1 text-gray-900 dark:text-white">${project.title}</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-300 mb-3">${project.description || "No description"}</p>
+          <a href="/static/tasks.html?id=${project.id}" class="inline-block mt-2 px-3 py-1 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
+            📋 View Tasks
+          </a>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    async function createProject() {
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+
+      const res = await fetch("/projects/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify({ title, description })
+      });
+
+      if (res.ok) {
+        document.getElementById("title").value = "";
+        document.getElementById("description").value = "";
+        await loadProjects();
+      } else {
+        alert("Failed to create project");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("access_token");
+      window.location.href = "/";
+    }
+
+    // 🌙 Toggle Dark Mode
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      document.getElementById("darkModeToggle").textContent = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+    }
+
+    // Load saved dark mode preference
+    (function () {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById("darkModeToggle").textContent = "☀️ Light Mode";
+      }
+    })();
+
+    loadProjects();
+  </script>
+</body>
+</html>

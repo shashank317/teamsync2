@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-100 dark:bg-gray-900">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reset Password – TeamSync</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { inter: ['Inter', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-md shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-4 text-center">🔐 Reset Your Password</h2>
+
+    <div id="errorMsg" class="text-red-500 text-sm mb-3 hidden"></div>
+    <div id="successMsg" class="text-green-500 text-sm mb-3 hidden"></div>
+
+    <input id="email" type="email" placeholder="Registered Email" class="w-full mb-3 px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" />
+    <input id="newPassword" type="password" placeholder="New Password" class="w-full mb-4 px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" />
+
+    <button onclick="resetPassword()" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition">
+      🔄 Reset Password
+    </button>
+
+    <p class="text-sm text-center mt-4">
+      Remembered your password?
+      <a href="/static/index.html" class="text-indigo-500 hover:underline">Login here</a>
+    </p>
+  </div>
+
+  <script>
+    async function resetPassword() {
+      const email = document.getElementById("email").value.trim();
+      const newPassword = document.getElementById("newPassword").value;
+
+      const errorBox = document.getElementById("errorMsg");
+      const successBox = document.getElementById("successMsg");
+      errorBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+
+      // Client-side validation
+      if (newPassword.length < 8) {
+        showError("Password must be at least 8 characters.");
+        return;
+      }
+      if (!/[a-z]/.test(newPassword)) {
+        showError("Password must include a lowercase letter.");
+        return;
+      }
+      if (!/[A-Z]/.test(newPassword)) {
+        showError("Password must include an uppercase letter.");
+        return;
+      }
+      if (!/[0-9]/.test(newPassword)) {
+        showError("Password must include a number.");
+        return;
+      }
+      if (!/[!@#$%^&*()\-_=+]/.test(newPassword)) {
+        showError("Password must include a special character (!@#$...).");
+        return;
+      }
+
+      const res = await fetch("/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, new_password: newPassword })
+      });
+
+      if (res.ok) {
+        successBox.textContent = "✅ Password reset successfully!";
+        successBox.classList.remove("hidden");
+      } else {
+        const data = await res.json();
+        showError(data.detail || "Failed to reset password.");
+      }
+    }
+
+    function showError(msg) {
+      const errorBox = document.getElementById("errorMsg");
+      errorBox.textContent = msg;
+      errorBox.classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>

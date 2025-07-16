@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-100 dark:bg-gray-900">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign Up – TeamSync</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { inter: ['Inter', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-md shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-4 text-center">📝 Sign Up for TeamSync</h2>
+
+    <div id="errorMsg" class="text-red-500 text-sm mb-3 hidden"></div>
+
+    <input id="name" type="text" placeholder="Full Name" class="w-full mb-3 px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" />
+    <input id="email" type="email" placeholder="Email" class="w-full mb-3 px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" />
+    <input id="password" type="password" placeholder="Password" class="w-full mb-4 px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600" />
+
+    <button onclick="signup()" class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition">
+      ✅ Create Account
+    </button>
+
+    <p class="text-sm text-center mt-4">Already have an account? <a href="/static/index.html" class="text-indigo-500 hover:underline">Login</a></p>
+  </div>
+
+  <script>
+    async function signup() {
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const errorBox = document.getElementById("errorMsg");
+
+      errorBox.classList.add("hidden");
+
+      // ✅ Simple frontend validation
+      if (!name || !email || !password) {
+        errorBox.textContent = "All fields are required.";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      // ✅ Password strength validation
+      if (password.length < 8 ||
+          !/[a-z]/.test(password) ||
+          !/[A-Z]/.test(password) ||
+          !/[0-9]/.test(password) ||
+          !/[!@#$%^&*()\-_=+]/.test(password)) {
+        errorBox.textContent = "Password must be strong (min 8 chars, upper/lowercase, number, symbol).";
+        errorBox.classList.remove("hidden");
+        return;
+      }
+
+      const res = await fetch("/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("access_token", data.access_token);
+        window.location.href = "/static/dashboard.html";
+      } else {
+        errorBox.textContent = data.detail || "Signup failed.";
+        errorBox.classList.remove("hidden");
+      }
+    }
+  </script>
+</body>
+</html>
