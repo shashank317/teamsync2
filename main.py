@@ -1,22 +1,31 @@
 from fastapi import FastAPI
-from routers import users, projects, tasks, comments  # ✅ added comments
+from routers import users, projects, tasks, comments , members # ✅ added comments
 from models import Base
 from database import engine
 from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from auth import router as auth_router
+from routers import members  # 👈 Add this
+
+
+
 
 # ✅ Create database tables on startup
 Base.metadata.create_all(bind=engine)
 
+
 # ✅ FastAPI app instance
 app = FastAPI()
+
 
 # ✅ Register all routers
 app.include_router(users.router)
 app.include_router(projects.router)
 app.include_router(tasks.router)
-app.include_router(comments.router)  # ✅ newly added
+app.include_router(comments.router) 
+app.include_router(auth_router) # ✅ newly added
+app.include_router(members.router)  # 👈 Register it
 
 # ✅ Fix Swagger Authorize UI to show Bearer token
 def custom_openapi():
